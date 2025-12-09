@@ -1,0 +1,94 @@
+/* src/pages/Receive.css */
+
+.receive-container {
+  min-height: 100vh;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  transition: background-color 0.3s;
+}
+
+.receive-card {
+  background-color: var(--bg-card);
+  width: 100%;
+  max-width: 450px;
+  padding: 30px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.receive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.qr-box {
+  background: white; /* QR Code luôn cần nền trắng để quét được */
+  padding: 20px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 20px 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 5px solid var(--primary); /* Viền màu xanh thương hiệu */
+}
+
+.info-text {
+  color: var(--text-sub);
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.address-box {
+  background-color: var(--icon-bg);
+  padding: 15px;
+  border-radius: 12px;
+  word-break: break-all; /* Xuống dòng nếu địa chỉ quá dài */
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 15px;
+  margin: 10px 0 20px 0;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-copy {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-copy:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+.btn-copy.copied {
+  background-color: var(--success); /* Đổi màu xanh lá khi copy xong */
+}
+
+.network-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 20px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}

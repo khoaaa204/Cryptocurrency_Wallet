@@ -1,170 +1,81 @@
-import React, { useEffect, useState } from "react";
-import { ethers } from "ethers";
+import React, { useState, useEffect } from 'react';
 
-/**
- * MetaMaskConnect
- * - Kết nối MetaMask
- * - Hiển thị account, chainId, balance
- * - Lắng nghe account/chain thay đổi
- * - signMessage ví dụ
- *
- * Props:
- * - onConnected(account: string | null) => void
- */
-export default function MetaMaskConnect(props) {
-  const [available, setAvailable] = useState(false);
-  const [account, setAccount] = useState(null);
-  const [chainId, setChainId] = useState(null);
-  const [balance, setBalance] = useState(null);
-  const [provider, setProvider] = useState(null);
-  const [error, setError] = useState(null);
+export default function MetaMaskConnect({ onConnect }) {
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [defaultAccount, setDefaultAccount] = useState(null);
+  const [btnText, setBtnText] = useState('🔗 Kết nối MetaMask');
 
-  useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      setAvailable(true);
-      const p = new ethers.BrowserProvider(window.ethereum);
-      setProvider(p);
-
-      // nếu đã có account được kết nối trước đó, lấy nó (không show popup)
-      (async () => {
-        try {
-          const accounts = await window.ethereum.request({ method: "eth_accounts" });
-          if (accounts && accounts.length) {
-            handleAccountSet(accounts[0], p);
-          }
-          if (window.ethereum.chainId) setChainId(window.ethereum.chainId);
-        } catch (e) {
-          // ignore
-        }
-      })();
-
-      // listeners
-      const handleAccounts = (accounts) => {
-        const acc = accounts && accounts.length ? accounts[0] : null;
-        handleAccountSet(acc, p);
-      };
-      const handleChain = (chain) => {
-        setChainId(chain);
-      };
-
-      window.ethereum.on && window.ethereum.on("accountsChanged", handleAccounts);
-      window.ethereum.on && window.ethereum.on("chainChanged", handleChain);
-
-      return () => {
-        window.ethereum.removeListener && window.ethereum.removeListener("accountsChanged", handleAccounts);
-        window.ethereum.removeListener && window.ethereum.removeListener("chainChanged", handleChain);
-      };
+  // Hàm xử lý khi bấm nút kết nối
+  const connectWalletHandler = async () => {
+    // 1. Kiểm tra trình duyệt có MetaMask không
+    if (window.ethereum && window.ethereum.isMetaMask) {
+      try {
+        // 2. Yêu cầu MetaMask cấp quyền truy cập
+        const result = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // 3. Lấy địa chỉ ví đầu tiên
+        const address = result[0];
+        accountChangedHandler(address);
+      } catch (error) {
+        setErrorMessage("Người dùng từ chối kết nối!");
+      }
     } else {
-      setAvailable(false);
+      setErrorMessage("Chưa cài đặt MetaMask! Vui lòng cài đặt extension.");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  };
+
+  // Hàm xử lý khi lấy được địa chỉ ví
+  const accountChangedHandler = (newAccount) => {
+    setDefaultAccount(newAccount);
+    setBtnText("Đã kết nối");
+    
+    // Gửi địa chỉ ví ra bên ngoài (cho Dashboard dùng)
+    if (onConnect) {
+      onConnect(newAccount);
+    }
+  };
+
+  // Tự động lắng nghe nếu người dùng đổi ví trên MetaMask
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length > 0) {
+          accountChangedHandler(accounts[0]);
+        } else {
+          setDefaultAccount(null);
+          setBtnText('🔗 Kết nối MetaMask');
+        }
+      });
+    }
   }, []);
 
-  // Khi account được set (kể cả khi thay đổi), cập nhật state app + balance
-  async function handleAccountSet(acc, p) {
-    setAccount(acc);
-    // thông báo cho App.jsx (nếu có callback)
-    if (props && typeof props.onConnected === "function") {
-      props.onConnected(acc);
-    }
-    if (!acc) {
-      setBalance(null);
-      return;
-    }
-    try {
-      const providerToUse = p || provider || new ethers.BrowserProvider(window.ethereum);
-      const signer = await providerToUse.getSigner();
-      const bal = await signer.getBalance();
-      setBalance(ethers.formatEther(bal));
-    } catch (e) {
-      console.error("handleAccountSet balance error", e);
-      setBalance(null);
-    }
-  }
-
-  async function updateBalance(p, address) {
-    try {
-      const providerToUse = p || provider || new ethers.BrowserProvider(window.ethereum);
-      const signer = await providerToUse.getSigner();
-      const bal = await signer.getBalance();
-      setBalance(ethers.formatEther(bal));
-    } catch (e) {
-      console.error("updateBalance error", e);
-      setBalance(null);
-    }
-  }
-
-  async function connect() {
-    setError(null);
-    if (!window.ethereum) {
-      setError("MetaMask không được tìm thấy. Vui lòng cài MetaMask extension.");
-      return;
-    }
-    try {
-      // yêu cầu kết nối (MetaMask popup)
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      const acc = accounts[0];
-
-      // đảm bảo provider dùng ngay (không dùng stale provider state)
-      const p = provider || new ethers.BrowserProvider(window.ethereum);
-      setProvider(p);
-
-      await handleAccountSet(acc, p);
-      setChainId(window.ethereum.chainId || null);
-    } catch (err) {
-      console.error(err);
-      // người dùng bấm cancel hoặc lỗi khác
-      setError(err?.message || "Kết nối thất bại");
-    }
-  }
-
-  async function disconnectLocal() {
-    // MetaMask không hỗ trợ programmatic disconnect từ dapp.
-    // Ta chỉ clear state local để UX giống disconnect.
-    setAccount(null);
-    setBalance(null);
-    setChainId(null);
-    if (props && typeof props.onConnected === "function") {
-      props.onConnected(null);
-    }
-  }
-
-  async function signExample() {
-    if (!provider || !account) {
-      setError("Cần kết nối trước khi sign");
-      return;
-    }
-    try {
-      const signer = await provider.getSigner();
-      const message = `Xin chào — ký lúc ${new Date().toISOString()}`;
-      const signature = await signer.signMessage(message);
-      alert("Signature:\n" + signature);
-    } catch (e) {
-      console.error(e);
-      setError(e?.message || "Sign thất bại");
-    }
-  }
-
   return (
-    <div style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8, maxWidth: 520 }}>
-      <h3>MetaMask Connect</h3>
-      {!available && <p>MetaMask không được tìm thấy. Cài MetaMask rồi thử lại.</p>}
-      {available && !account && <button onClick={connect}>Kết nối MetaMask</button>}
-      {account && (
-        <div>
-          <p><strong>Account:</strong> {account}</p>
-          <p><strong>ChainId:</strong> {chainId}</p>
-          <p><strong>Balance:</strong> {balance ? `${balance} ETH` : "đang tải..."}</p>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <button onClick={signExample}>Sign example</button>
-            <button onClick={disconnectLocal}>Disconnect (local)</button>
-          </div>
-        </div>
+    <div style={{ marginBottom: '10px' }}>
+      <button 
+        onClick={connectWalletHandler}
+        style={{
+          background: defaultAccount ? '#28a745' : '#f6851b', // Xanh nếu đã nối, Cam (màu MetaMask) nếu chưa
+          color: 'white',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        {/* Icon hồ ly MetaMask (SVG đơn giản) */}
+        <svg width="20" height="20" viewBox="0 0 32 32">
+            <path fill="#ffffff" d="M26.21 4.385l-4.57 16.517-5.632-6.526-5.64 6.526-4.572-16.517 7.042-2.903 3.169 5.862 3.177-5.862z"></path>
+        </svg>
+        {defaultAccount ? `${defaultAccount.slice(0,6)}...${defaultAccount.slice(-4)}` : btnText}
+      </button>
+
+      {errorMessage && (
+        <p style={{ color: 'red', marginTop: '5px', fontSize: '12px' }}>{errorMessage}</p>
       )}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <small style={{ display: "block", marginTop: 8 }}>
-        Ghi chú: MetaMask quản lý kết nối. "Disconnect" ở đây chỉ xóa trạng thái local trong app.
-      </small>
     </div>
   );
 }

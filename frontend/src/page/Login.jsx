@@ -12,8 +12,12 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await API.post('/auth/login', { email, password });
+      
+      // Lưu token và user vào LocalStorage
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      
+      // Chuyển hướng sang trang Dashboard
       nav('/dashboard');
     } catch (err) {
       alert(err?.response?.data?.message || 'Login error');
@@ -24,8 +28,22 @@ export default function Login() {
     <div className="auth-container">
       <div className="auth-title">Đăng nhập</div>
       <form onSubmit={submit}>
-        <input className="auth-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="auth-input" type="password" placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input 
+          className="auth-input" 
+          type="email"       // Bắt buộc nhập đúng định dạng a@b.c
+          required           // Không được để trống
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+        />
+        <input 
+          className="auth-input" 
+          type="password" 
+          required           // Không được để trống
+          placeholder="Mật khẩu" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+        />
         <button className="auth-btn">Đăng nhập</button>
       </form>
       <p className="auth-link">
