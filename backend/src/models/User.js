@@ -1,32 +1,26 @@
+// backend/src/models/User.js
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    // Nếu muốn bắt buộc phải có email thì để true, nếu cho phép login chỉ bằng ví thì để false
-    required: true, 
-    unique: true, 
-  },
-  password: {
-    type: String,
-    // Password bắt buộc với email, nhưng nếu login bằng ví thì có thể không cần
-    // Tạm thời để required: false hoặc xử lý logic bên controller
-    required: false, 
-  },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  address: { type: String, required: false }, // Địa chỉ ví chính (ETH)
   
-  // --- SỬA ĐOẠN NAY ---
-  address: {
-    type: String,
-    required: false, // <--- Đổi từ true thành false (quan trọng)
-    unique: true,    // Giữ unique để 1 ví chỉ gắn với 1 tk
-    sparse: true,    // Cho phép nhiều user có address là null (quan trọng khi unique: true)
-  },
-  nonce: {
-    type: String,
-    required: false, // <--- Đổi từ true thành false
-    default: () => Math.floor(Math.random() * 1000000).toString(), // Tự động tạo số ngẫu nhiên nếu không có
-  },
-  // --------------------
+  // --- BẢO MẬT ---
+  twoFactorSecret: { type: String }, // Khóa bí mật 2FA
+  is2FAEnabled: { type: Boolean, default: false }, // Trạng thái 2FA
+  encryptedPrivateKey: { type: String }, // Khóa riêng tư đã mã hóa (Custodial Wallet)
+
+  // --- QUẢN LÝ TOKEN ---
+  assets: [
+    {
+      symbol: { type: String, required: true }, // Vd: USDT, BNB
+      name: { type: String },
+      balance: { type: Number, default: 0 },
+      address: { type: String }, // Contract Address của Token
+      network: { type: String, default: 'Ethereum' }
+    }
+  ]
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
