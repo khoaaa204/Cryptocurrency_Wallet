@@ -3,6 +3,7 @@ import { ethers } from 'ethers'; // <--- Import thư viện Blockchain
 import API from '../api/api';
 import { useNavigate, Link } from 'react-router-dom';
 import './Send.css';
+import { toast } from 'react-toastify';
 
 export default function Send() {
   const navigate = useNavigate();
@@ -25,13 +26,13 @@ export default function Send() {
     e.preventDefault();
 
     if (!recipient || !amount) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
+      toast.success("Vui long nhap day du thong tin")
       return;
     }
 
     // Kiểm tra MetaMask có cài không
     if (!window.ethereum) {
-      alert("Vui lòng cài đặt MetaMask để thực hiện giao dịch!");
+      toast.success("Vui lòng cài đặt MetaMask để thực hiện giao dịch!");
       return;
     }
 
@@ -57,7 +58,7 @@ export default function Send() {
       console.log("Giao dịch đã được gửi! Hash:", tx.hash);
       
       // 4. Đợi giao dịch được xác nhận (Đào block)
-      alert("⏳ Giao dịch đã gửi đi. Vui lòng đợi xác nhận...");
+      toast.success("⏳ Giao dịch đã gửi đi. Vui lòng đợi xác nhận...");
       await tx.wait(); // Chờ giao dịch hoàn tất trên blockchain
 
       // 5. Sau khi thành công trên Blockchain, ta mới lưu vào Database của mình để làm lịch sử
@@ -69,7 +70,7 @@ export default function Send() {
         token: "ETH"   // Hoặc BNB tùy mạng
       });
 
-      alert(`✅ Gửi tiền thành công! Hash: ${tx.hash}`);
+      toast.success(`✅ Gửi tiền thành công! Hash: ${tx.hash}`);
       navigate('/dashboard');
 
     } catch (err) {
@@ -77,11 +78,11 @@ export default function Send() {
       
       // Xử lý các lỗi thường gặp
       if (err.code === 'ACTION_REJECTED') {
-        alert("Bạn đã từ chối giao dịch trên MetaMask.");
+        toast.success("Bạn đã từ chối giao dịch trên MetaMask.");
       } else if (err.code === 'INSUFFICIENT_FUNDS') {
-        alert("Số dư không đủ để trả tiền + phí Gas!");
+        toast.success("Số dư không đủ để trả tiền + phí Gas!");
       } else {
-        alert("Giao dịch thất bại: " + err.message);
+        toast.success("Giao dịch thất bại: " + err.message);
       }
     } finally {
       setLoading(false);
@@ -93,12 +94,12 @@ export default function Send() {
     try {
       const text = await navigator.clipboard.readText();
       setRecipient(text);
-    } catch (err) { alert("Không thể truy cập clipboard"); }
+    } catch (err) { toast.success("Không thể truy cập clipboard"); }
   };
 
   const handleMax = () => {
     // Để an toàn, bạn không nên set max 100% vì cần chừa tiền trả phí Gas
-    alert("Tính năng Max cần tính toán phí Gas (Nâng cao). Hãy nhập tay số tiền nhỏ hơn số dư hiện có.");
+    toast.success("Tính năng Max cần tính toán phí Gas (Nâng cao). Hãy nhập tay số tiền nhỏ hơn số dư hiện có.");
   };
 
   return (

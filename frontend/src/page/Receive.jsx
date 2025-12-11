@@ -46,7 +46,7 @@ export default function Receive() {
 
         } catch (error) {
           console.error("Lỗi đọc ví:", error);
-          alert("Vui lòng mở khóa MetaMask!");
+          toast.success("Vui lòng mở khóa MetaMask!");
         }
       } else {
         // Fallback: Nếu không có MetaMask thì lấy từ Database (như cũ)

@@ -69,7 +69,7 @@ export default function MetaMaskConnectV5() {
       const signer = provider.getSigner();
       const message = `Hello — signed at ${new Date().toISOString()}`;
       const sig = await signer.signMessage(message);
-      alert(sig);
+      toast.success(sig);
     } catch (e) {
       setError(e?.message || "Sign thất bại");
     }

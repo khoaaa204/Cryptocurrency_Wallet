@@ -1,20 +1,19 @@
 import express from "express";
-// Import thêm hàm register (nhớ cập nhật ở controller bước 2)
-import { getNonce, login, register } from "../controllers/authController.js";
-
+// Import đủ các hàm đã export bên controller
+import { getNonce, login, register, setup2FA, verify2FA,forgotPassword, resetPassword } from "../controllers/authController.js";
 
 const router = express.Router();
 
-// --- AUTH TRUYỀN THỐNG (Email/Pass) ---
-// Route này để sửa lỗi 404 bạn đang gặp
-router.post("/register", register); 
-
-
-// --- AUTH WEB3 (MetaMask) ---
-// lấy nonce: frontend gọi trước khi yêu cầu sign
+// --- AUTH CƠ BẢN ---
+router.post("/register", register);
+router.post("/login", login);
+router.post("/forgotpassword", forgotPassword);
+router.put("/resetpassword/:resetToken", resetPassword);
+// --- WEB3 AUTH ---
 router.get("/nonce/:address", getNonce);
 
-// gửi chữ ký để đăng nhập
-router.post("/login", login);
+// --- 2FA (BẢO MẬT 2 LỚP) ---
+router.post("/2fa/setup", setup2FA);   // API tạo mã QR
+router.post("/2fa/verify", verify2FA); // API xác nhận mã 6 số
 
 export default router;

@@ -11,7 +11,7 @@ export default function SendTransaction() {
   const [msg, setMsg] = useState(null);
 
   const send = async () => {
-    if (!provider) return alert("Connect MetaMask first");
+    if (!provider) return toast.success("Connect MetaMask first");
     try {
       setLoading(true);
       setMsg(null);

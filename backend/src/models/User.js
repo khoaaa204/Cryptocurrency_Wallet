@@ -1,26 +1,51 @@
-// backend/src/models/User.js
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs"; // Import thư viện mã hóa
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  address: { type: String, required: false }, // Địa chỉ ví chính (ETH)
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: false,
+    sparse: true, // QUAN TRỌNG: Cho phép nhiều người có address là null
+  },
   
-  // --- BẢO MẬT ---
-  twoFactorSecret: { type: String }, // Khóa bí mật 2FA
-  is2FAEnabled: { type: Boolean, default: false }, // Trạng thái 2FA
-  encryptedPrivateKey: { type: String }, // Khóa riêng tư đã mã hóa (Custodial Wallet)
+  // Các trường cho 2FA
+  twoFactorSecret: { type: String },
+  is2FAEnabled: { type: Boolean, default: false },
 
-  // --- QUẢN LÝ TOKEN ---
-  assets: [
-    {
-      symbol: { type: String, required: true }, // Vd: USDT, BNB
-      name: { type: String },
-      balance: { type: Number, default: 0 },
-      address: { type: String }, // Contract Address của Token
-      network: { type: String, default: 'Ethereum' }
-    }
-  ]
+  // Các trường cho Reset Password
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+
+  // Danh sách tài sản
+  assets: [{
+    symbol: String,
+    name: String,
+    balance: Number,
+    address: String
+  }]
 }, { timestamps: true });
+
+// --- MIDDLEWARE: Tự động mã hóa mật khẩu trước khi lưu ---
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// --- METHOD: Kiểm tra mật khẩu khi đăng nhập ---
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 export default mongoose.model("User", userSchema);

@@ -17,7 +17,7 @@ export default function Register() {
       nav('/dashboard');
     } catch (err) {
       // nếu muốn debug: console.error(err)
-      alert(err?.response?.data?.message || 'Register error');
+      toast.success(err?.response?.data?.message || 'Register error');
     }
   };
 
