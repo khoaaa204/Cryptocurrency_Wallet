@@ -1,106 +1,114 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers'; // <--- Import thư viện Blockchain
+import { ethers } from 'ethers'; 
 import API from '../api/api';
-import { useNavigate, Link } from 'react-router-dom';
-import './Send.css';
+import { useNavigate, Link, useLocation } from 'react-router-dom'; // <--- 1. NHỚ IMPORT useLocation
 import { toast } from 'react-toastify';
+import './Send.css';
 
 export default function Send() {
   const navigate = useNavigate();
+  const location = useLocation(); // <--- 2. KHAI BÁO HOOK
   
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
-  // Load theme
+  // State cho danh bạ & gợi ý
+  const [contacts, setContacts] = useState([]); 
+  const [showSuggestions, setShowSuggestions] = useState(false); 
+
+  // --- EFFECT 1: XỬ LÝ THEME (GIAO DIỆN) ---
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // --- EFFECT 2: XỬ LÝ GỬI NHANH TỪ DANH BẠ (QUICK SEND) ---
+  useEffect(() => {
+    // Kiểm tra xem có dữ liệu gửi từ trang AddressBook sang không
+    if (location.state && location.state.prefillAddress) {
+      setRecipient(location.state.prefillAddress); // Tự điền vào ô input
+      toast.info(`Đã chọn người nhận: ${location.state.prefillAddress.slice(0,6)}...`);
+    }
+  }, [location]);
+
+  // --- EFFECT 3: TẢI DANH BẠ ---
+  useEffect(() => {
+    const loadContacts = async () => {
+      const userLocal = JSON.parse(localStorage.getItem('user'));
+      if (userLocal) {
+        try {
+          const res = await API.get(`/user/contacts?userId=${userLocal._id}`);
+          setContacts(res.data);
+        } catch (err) {
+          console.error("Lỗi tải danh bạ", err);
+        }
+      }
+    };
+    loadContacts();
+  }, []);
+
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
-  // --- LOGIC GỬI TIỀN THẬT (REAL BLOCKCHAIN TRANSACTION) ---
+  // ... (Giữ nguyên các hàm handleSelectContact, handleSend, handlePaste...) ...
+  // (Phần code bên dưới không thay đổi so với phiên bản trước)
+
+  // Hàm lọc danh bạ
+  const filteredContacts = contacts.filter(c => 
+    c.name.toLowerCase().includes(recipient.toLowerCase()) && 
+    recipient.length > 0 &&
+    recipient !== c.address
+  );
+
+  const handleSelectContact = (address) => {
+    setRecipient(address);
+    setShowSuggestions(false);
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
-
-    if (!recipient || !amount) {
-      toast.success("Vui long nhap day du thong tin")
-      return;
-    }
-
-    // Kiểm tra MetaMask có cài không
-    if (!window.ethereum) {
-      toast.success("Vui lòng cài đặt MetaMask để thực hiện giao dịch!");
-      return;
-    }
+    if (!recipient || !amount) return toast.warning("Nhập đủ thông tin!");
+    if (!window.ethereum) return toast.error("Cài MetaMask đi bạn ơi!");
 
     setLoading(true);
-
     try {
-      // 1. Kết nối với MetaMask
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner(); // Người ký giao dịch (là bạn)
-
-      // 2. Chuyển đổi số tiền sang đơn vị Wei (Blockchain không hiểu số thập phân)
-      // Ví dụ: 1 ETH = 10^18 Wei
+      const signer = await provider.getSigner();
       const txAmount = ethers.parseEther(amount.toString());
 
-      console.log("Đang khởi tạo giao dịch...");
+      const tx = await signer.sendTransaction({ to: recipient, value: txAmount });
 
-      // 3. Gửi lệnh lên Blockchain (MetaMask sẽ bật lên hỏi bạn)
-      const tx = await signer.sendTransaction({
-        to: recipient,
-        value: txAmount,
-      });
+      toast.info("⏳ Giao dịch đã gửi đi...");
+      await tx.wait(); 
 
-      console.log("Giao dịch đã được gửi! Hash:", tx.hash);
-      
-      // 4. Đợi giao dịch được xác nhận (Đào block)
-      toast.success("⏳ Giao dịch đã gửi đi. Vui lòng đợi xác nhận...");
-      await tx.wait(); // Chờ giao dịch hoàn tất trên blockchain
-
-      // 5. Sau khi thành công trên Blockchain, ta mới lưu vào Database của mình để làm lịch sử
       await API.post('/wallets/transaction', {
         from: await signer.getAddress(),
         to: recipient,
         amount: Number(amount),
-        hash: tx.hash, // Lưu mã giao dịch thật
-        token: "ETH"   // Hoặc BNB tùy mạng
+        hash: tx.hash, 
+        token: "ETH"
       });
 
-      toast.success(`✅ Gửi tiền thành công! Hash: ${tx.hash}`);
+      toast.success("✅ Gửi tiền thành công!");
       navigate('/dashboard');
-
     } catch (err) {
-      console.error("Lỗi giao dịch:", err);
-      
-      // Xử lý các lỗi thường gặp
-      if (err.code === 'ACTION_REJECTED') {
-        toast.success("Bạn đã từ chối giao dịch trên MetaMask.");
-      } else if (err.code === 'INSUFFICIENT_FUNDS') {
-        toast.success("Số dư không đủ để trả tiền + phí Gas!");
-      } else {
-        toast.success("Giao dịch thất bại: " + err.message);
-      }
+      console.error(err);
+      toast.error("Thất bại: " + (err.reason || err.message));
     } finally {
       setLoading(false);
     }
   };
 
-  // Các hàm tiện ích (Paste, Max)
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
       setRecipient(text);
-    } catch (err) { toast.success("Không thể truy cập clipboard"); }
+      setShowSuggestions(false);
+    } catch (err) { toast.error("Lỗi Clipboard"); }
   };
 
-  const handleMax = () => {
-    // Để an toàn, bạn không nên set max 100% vì cần chừa tiền trả phí Gas
-    toast.success("Tính năng Max cần tính toán phí Gas (Nâng cao). Hãy nhập tay số tiền nhỏ hơn số dư hiện có.");
-  };
+  const handleMax = () => { toast.info("Tính năng Max đang phát triển"); };
 
   return (
     <div className="send-container">
@@ -112,34 +120,53 @@ export default function Send() {
           </button>
         </div>
 
-        <div className="network-warning" style={{marginBottom: 15, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: 10, borderRadius: 8, fontSize: 13}}>
-          ⚠️ <strong>CẢNH BÁO:</strong> Đây là giao dịch thật trên Blockchain. Tiền gửi đi <strong>không thể lấy lại</strong>. Hãy kiểm tra kỹ địa chỉ ví!
-        </div>
-
         <form onSubmit={handleSend}>
-          <div className="form-group">
-            <label className="form-label">Người nhận</label>
+          <div className="form-group" style={{position: 'relative'}}>
+            <label className="form-label">Người nhận (Tên hoặc Địa chỉ)</label>
             <div className="input-wrapper">
               <input 
-                className="form-input" type="text" placeholder="0x..." 
-                value={recipient} onChange={(e) => setRecipient(e.target.value)} required
+                className="form-input" 
+                type="text" 
+                placeholder="Nhập tên hoặc 0x..." 
+                value={recipient} 
+                onChange={(e) => {
+                  setRecipient(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                required
+                autoComplete="off"
               />
               <button type="button" className="input-action-btn" onClick={handlePaste}>DÁN</button>
             </div>
+
+            {/* Gợi ý danh bạ */}
+            {showSuggestions && filteredContacts.length > 0 && (
+              <div className="suggestions-list">
+                {filteredContacts.map(c => (
+                  <div key={c._id} className="suggestion-item" onClick={() => handleSelectContact(c.address)}>
+                    <span className="sug-name">{c.name}</span>
+                    <span className="sug-address">{c.address.slice(0, 6)}...</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
-            <label className="form-label">Số tiền</label>
+            <label className="form-label">Số tiền (ETH)</label>
             <div className="input-wrapper">
               <input 
                 className="form-input" type="number" placeholder="0.00" 
-                value={amount} onChange={(e) => setAmount(e.target.value)} step="0.000000000000000001" min="0" required
+                value={amount} onChange={(e) => setAmount(e.target.value)} 
+                step="0.000000000000000001" min="0" required
               />
+              <button type="button" className="input-action-btn" onClick={handleMax}>TỐI ĐA</button>
             </div>
           </div>
 
           <button className="send-btn" disabled={loading}>
-            {loading ? "Đang xử lý trên Blockchain..." : "Xác nhận gửi tiền"}
+            {loading ? "Đang xử lý..." : "Xác nhận gửi tiền"}
           </button>
         </form>
 

@@ -23,3 +23,11 @@ export const protect = async (req, res, next) => {
     return res.status(401).json({ error: "Token invalid or expired" });
   }
 };
+// 2. Kiểm tra có phải Admin không (Middleware mới)
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next(); // Cho qua
+  } else {
+    res.status(403).json({ message: "Truy cập bị từ chối! Chỉ Admin mới được vào." });
+  }
+};

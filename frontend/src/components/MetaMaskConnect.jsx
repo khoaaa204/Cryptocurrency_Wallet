@@ -1,60 +1,56 @@
 import React, { useState, useEffect } from 'react';
 
-export default function MetaMaskConnect({ onConnect }) {
-  const [errorMessage, setErrorMessage] = useState(null);
+export default function MetaMaskConnect({ onConnect, savedAddress }) {
   const [defaultAccount, setDefaultAccount] = useState(null);
   const [btnText, setBtnText] = useState('🔗 Kết nối MetaMask');
 
-  // Hàm xử lý khi bấm nút kết nối
+  // --- 1. CHỈ CẬP NHẬT GIAO DIỆN DỰA TRÊN savedAddress TỪ CHA GỬI XUỐNG ---
+  useEffect(() => {
+    if (savedAddress) {
+      setDefaultAccount(savedAddress);
+      setBtnText("Đã kết nối");
+    } else {
+      setDefaultAccount(null);
+      setBtnText("🔗 Kết nối MetaMask");
+    }
+  }, [savedAddress]); 
+  // -----------------------------------------------------------------------
+
   const connectWalletHandler = async () => {
-    // 1. Kiểm tra trình duyệt có MetaMask không
     if (window.ethereum && window.ethereum.isMetaMask) {
       try {
-        // 2. Yêu cầu MetaMask cấp quyền truy cập
+        // 1. BẮT BUỘC METAMASK MỞ CỬA SỔ CHỌN VÍ
+        // Lệnh này sẽ reset quyền truy cập và buộc người dùng chọn lại ví
+        await window.ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
+
+        // 2. Sau khi chọn xong, lấy địa chỉ ví đó
         const result = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = result[0];
         
-        // 3. Lấy địa chỉ ví đầu tiên
-        const address = result[0];
-        accountChangedHandler(address);
+        // 3. Gửi lên Dashboard xử lý
+        if (onConnect) {
+          onConnect(account);
+        }
+        
       } catch (error) {
-        setErrorMessage("Người dùng từ chối kết nối!");
+        // Nếu người dùng tắt popup mà không chọn
+        console.log("Người dùng đã hủy chọn ví.");
+        setErrorMessage("Bạn chưa chọn ví nào!");
       }
     } else {
-      setErrorMessage("Chưa cài đặt MetaMask! Vui lòng cài đặt extension.");
+      alert("Vui lòng cài đặt MetaMask!");
     }
   };
-
-  // Hàm xử lý khi lấy được địa chỉ ví
-  const accountChangedHandler = (newAccount) => {
-    setDefaultAccount(newAccount);
-    setBtnText("Đã kết nối");
-    
-    // Gửi địa chỉ ví ra bên ngoài (cho Dashboard dùng)
-    if (onConnect) {
-      onConnect(newAccount);
-    }
-  };
-
-  // Tự động lắng nghe nếu người dùng đổi ví trên MetaMask
-  useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts) => {
-        if (accounts.length > 0) {
-          accountChangedHandler(accounts[0]);
-        } else {
-          setDefaultAccount(null);
-          setBtnText('🔗 Kết nối MetaMask');
-        }
-      });
-    }
-  }, []);
 
   return (
     <div style={{ marginBottom: '10px' }}>
       <button 
         onClick={connectWalletHandler}
         style={{
-          background: defaultAccount ? '#28a745' : '#f6851b', // Xanh nếu đã nối, Cam (màu MetaMask) nếu chưa
+          background: defaultAccount ? '#28a745' : '#f6851b', // Xanh hoặc Cam
           color: 'white',
           border: 'none',
           padding: '10px 20px',
@@ -63,19 +59,19 @@ export default function MetaMaskConnect({ onConnect }) {
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          transition: '0.3s'
         }}
       >
-        {/* Icon hồ ly MetaMask (SVG đơn giản) */}
         <svg width="20" height="20" viewBox="0 0 32 32">
             <path fill="#ffffff" d="M26.21 4.385l-4.57 16.517-5.632-6.526-5.64 6.526-4.572-16.517 7.042-2.903 3.169 5.862 3.177-5.862z"></path>
         </svg>
-        {defaultAccount ? `${defaultAccount.slice(0,6)}...${defaultAccount.slice(-4)}` : btnText}
+        
+        {defaultAccount 
+          ? `${defaultAccount.slice(0,6)}...${defaultAccount.slice(-4)}` 
+          : btnText
+        }
       </button>
-
-      {errorMessage && (
-        <p style={{ color: 'red', marginTop: '5px', fontSize: '12px' }}>{errorMessage}</p>
-      )}
     </div>
   );
 }

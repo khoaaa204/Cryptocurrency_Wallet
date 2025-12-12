@@ -6,7 +6,8 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import walletRoutes from "./routes/walletRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-
+import adminRoutes from './routes/adminRoutes.js';
+import userRoutes from "./routes/userRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -22,12 +23,10 @@ app.use(express.json());
 
 // routes
 app.use("/api/auth", authRoutes);
-
-// --- SỬA DÒNG DƯỚI ĐÂY ---
-// Đổi "wallet" thành "wallets" (thêm s) để khớp với Frontend
+app.use('/api/admin', adminRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/wallets", walletRoutes); 
-// -------------------------
-
+app.use("/api/user", userRoutes); 
 app.get("/", (req, res) =>
   res.json({
     status: "ok",

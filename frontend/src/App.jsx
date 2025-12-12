@@ -5,7 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
+import AdminDashboard from './page/AdminDashboard';
 import Login from './page/Login';
 import Register from './page/Register';
 import Dashboard from './page/Dashboard';
@@ -34,6 +34,7 @@ export default function App() {
       <Route path="/receive" element={<PrivateRoute><Receive/></PrivateRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/resetpassword/:resetToken" element={<ResetPassword />} />
+      <Route path="/admin" element={<PrivateRoute><AdminDashboard/></PrivateRoute>} />
     </Routes>
      </>
   );

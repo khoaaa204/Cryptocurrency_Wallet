@@ -59,7 +59,8 @@ export const login = async (req, res) => {
           _id: user._id, 
           email: user.email, 
           address: user.address,
-          is2FAEnabled: user.is2FAEnabled
+          is2FAEnabled: user.is2FAEnabled,
+          role: user.role
         },
       });
     } else {

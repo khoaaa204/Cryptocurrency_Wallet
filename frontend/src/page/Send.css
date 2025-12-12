@@ -1,4 +1,4 @@
-/* src/pages/Send.css */
+/* src/page/Send.css */
 
 /* 1. Định nghĩa biến màu (Mặc định là Light Mode) */
 :root {
@@ -167,4 +167,48 @@
 
 .back-link:hover {
   color: var(--primary-color);
+}
+/* --- PHẦN GỢI Ý DANH BẠ (AUTOCOMPLETE) --- */
+.suggestions-list {
+  position: absolute;
+  top: 100%; /* Nằm ngay dưới ô input */
+  left: 0;
+  right: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.suggestion-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--input-border);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: var(--input-bg);
+}
+
+.sug-name {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.sug-address {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: monospace;
 }

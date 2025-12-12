@@ -1,84 +1,105 @@
 import React, { useState } from 'react';
 import API from '../api/api';
 import { useNavigate, Link } from 'react-router-dom';
-import '../Auth.css'; // File CSS chung cho Login/Register
 import { toast } from 'react-toastify';
+import '../Auth.css';
+
+// Đảm bảo bạn đã có ảnh trong assets
+import bgImage from '../assets/bg-crypto.jpg'; 
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  
   const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Bắt đầu loading
-
+    setLoading(true);
     try {
-      // Gọi API đăng nhập
       const res = await API.post('/auth/login', { email, password });
-
-      // Lưu Token và User vào LocalStorage
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-
-      // Thông báo và chuyển hướng
-      toast.success("🚀 Đăng nhập thành công!");
-      navigate('/dashboard'); 
-
+      toast.success("Đăng nhập thành công");
+      navigate('/dashboard');
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Lỗi đăng nhập"); 
+      toast.error(err?.response?.data?.message || 'Lỗi đăng nhập');
     } finally {
-      setLoading(false); // Tắt loading dù thành công hay thất bại
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-title">Đăng nhập</div>
+    <div className="auth-page">
       
-      <form onSubmit={submit}>
-        {/* Input Email */}
-        <input 
-          className="auth-input" 
-          type="email" 
-          required 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-        />
-        
-        {/* Input Password */}
-        <input 
-          className="auth-input" 
-          type="password" 
-          required 
-          placeholder="Mật khẩu" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-        />
+      {/* 1. CỘT TRÁI (HÌNH ẢNH) */}
+      <div 
+        className="auth-image-side" 
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
+        {/* Có thể thêm text đè lên ảnh nếu muốn, hoặc để trống như MB */}
+      </div>
 
-        {/* Link Quên mật khẩu (Nằm bên phải) */}
-        <div style={{ textAlign: 'right', marginBottom: 20, marginTop: -10 }}>
-          <Link 
-            to="/forgot-password" 
-            style={{ fontSize: '14px', color: '#3b82f6', textDecoration: 'none' }}
-          >
-            Quên mật khẩu?
-          </Link>
+      {/* 2. CỘT PHẢI (FORM) */}
+      <div className="auth-form-side">
+        
+        {/* Hotline góc trên */}
+        <div className="top-header">
+          📞 Hotline: <span style={{fontWeight:'bold'}}>+84377605133</span> (VN)
         </div>
 
-        {/* Nút Submit */}
-        <button className="auth-btn" disabled={loading}>
-          {loading ? "Đang xử lý..." : "Đăng nhập"}
-        </button>
-      </form>
+        <div className="auth-container">
+          
+          {/* Logo & Tiêu đề */}
+          <div className="auth-branding">
+            <span className="logo-text">Crypto Wallet</span>
+            <div className="welcome-text">Chào mừng bạn đến với</div>
+            <div className="app-name">Ví Điện Tử Internet Banking</div>
+          </div>
 
-      {/* Link chuyển sang Đăng ký */}
-      <p className="auth-link">
-        Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-      </p>
+          <form onSubmit={submit}>
+            {/* Input Email */}
+            <label className="input-label">Tên đăng nhập / Email</label>
+            <input 
+              className="auth-input" 
+              type="email" 
+              required 
+              placeholder="Nhập email của bạn" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+            />
+            
+            {/* Input Password */}
+            <label className="input-label">Mật khẩu</label>
+            <input 
+              className="auth-input" 
+              type="password" 
+              required 
+              placeholder="Nhập mật khẩu" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
+            <button className="auth-btn" disabled={loading}>
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            </button>
+
+            {/* Links bên dưới nút */}
+            <div className="auth-actions">
+              <Link to="/forgot-password" class="link-blue">Quên mật khẩu?</Link>
+              <Link to="/register" class="link-blue">Bạn Chưa Có Tài Khoản?</Link>
+            </div>
+          </form>
+
+        </div>
+
+        {/* Footer Links (Dưới cùng) */}
+        <div className="auth-footer">
+          <a href="#">Kết nối với chúng tôi</a> |
+          <a href="#">Điều khoản điều kiện</a> |
+          <a href="#">An toàn bảo mật</a>
+        </div>
+
+      </div>
     </div>
   );
 }
