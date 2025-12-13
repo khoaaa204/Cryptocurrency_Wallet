@@ -98,27 +98,36 @@ export default function AddressBook() {
       </div>
       
       {/* Form Thêm mới */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input 
-          placeholder="Tên gợi nhớ (VD: Vợ, Sếp...)" 
-          value={name} 
-          onChange={e => setName(e.target.value)} 
-          style={{ padding: '10px', borderRadius: 8, border: '1px solid var(--border)', flex: 1, background: 'var(--bg-body)', color: 'var(--text-main)' }}
-        />
-        <input 
-          placeholder="Địa chỉ ví (0x...)" 
-          value={address} 
-          onChange={e => setAddress(e.target.value)} 
-          style={{ padding: '10px', borderRadius: 8, border: '1px solid var(--border)', flex: 2, background: 'var(--bg-body)', color: 'var(--text-main)' }}
-        />
-        <button 
-          onClick={handleAdd} 
-          disabled={loading}
-          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          {loading ? '...' : 'Lưu'}
-        </button>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: 10, marginBottom: 20 }}>
+  <input 
+    placeholder="Tên (VD: Vợ)" 
+    value={name} 
+    onChange={e => setName(e.target.value)} 
+    style={{ 
+      padding: '10px 15px', borderRadius: 10, border: '1px solid var(--border)', 
+      background: 'var(--bg-body)', color: 'var(--text-main)', outline: 'none', minWidth: 0
+    }}
+  />
+  <input 
+    placeholder="Địa chỉ ví (0x...)" 
+    value={address} 
+    onChange={e => setAddress(e.target.value)} 
+    style={{ 
+      padding: '10px 15px', borderRadius: 10, border: '1px solid var(--border)', 
+      background: 'var(--bg-body)', color: 'var(--text-main)', outline: 'none', minWidth: 0
+    }}
+  />
+  <button 
+    onClick={handleAdd} 
+    disabled={loading}
+    style={{ 
+      padding: '0 20px', background: 'var(--primary)', color: 'white', 
+      border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap'
+    }}
+  >
+    {loading ? '...' : 'Lưu'}
+  </button>
+</div>
 
       {/* Danh sách hiển thị */}
       <div className="asset-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>

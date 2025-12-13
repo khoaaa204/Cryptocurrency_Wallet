@@ -13,6 +13,7 @@ import Send from './page/Send';
 import Receive from './page/Receive'; 
 import ForgotPassword from   './page/ForgotPassword';
 import ResetPassword from './page/ResetPassword';
+import Swap from './page/Swap'; 
 const isAuth = () => !!localStorage.getItem('token');
 
 function PrivateRoute({ children }) {
@@ -35,6 +36,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/resetpassword/:resetToken" element={<ResetPassword />} />
       <Route path="/admin" element={<PrivateRoute><AdminDashboard/></PrivateRoute>} />
+      <Route path="/swap" element={<PrivateRoute><Swap/></PrivateRoute>} />.
     </Routes>
      </>
   );

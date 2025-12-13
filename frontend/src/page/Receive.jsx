@@ -82,7 +82,7 @@ export default function Receive() {
         <div className="receive-header">
           <h2>📥 Nhận Crypto</h2>
           <button className="theme-btn" onClick={toggleTheme}>
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'light' ? 'Dark' : 'Light'}
           </button>
         </div>
 

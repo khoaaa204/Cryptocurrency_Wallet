@@ -25,7 +25,6 @@ body, html {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  font-family: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
   background-color: #fff;
 }
 
@@ -185,4 +184,52 @@ body, html {
   .auth-image-side { display: none; }
   .auth-form-side { width: 100%; padding: 20px; }
   .auth-container { max-width: 100%; }
+}
+/* Tùy chỉnh thanh cuộn cho toàn bộ Web */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563; /* Màu xám tối */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* Sáng hơn khi di chuột */
+}
+* Style cho nút MetaMask trong Header */
+.wallet-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: 0.2s;
+  
+  /* Mặc định (Chưa kết nối) */
+  background-color: #3b82f6; 
+  color: white;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.wallet-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Khi đã kết nối */
+.wallet-btn.connected {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid #10b981;
+  box-shadow: none;
 }

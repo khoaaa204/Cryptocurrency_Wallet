@@ -21,7 +21,10 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
+
 // routes
+
+
 app.use("/api/auth", authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use("/api/auth", authRoutes);

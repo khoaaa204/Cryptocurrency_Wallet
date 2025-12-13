@@ -49,6 +49,7 @@ export default function MetaMaskConnect({ onConnect, savedAddress }) {
     <div style={{ marginBottom: '10px' }}>
       <button 
         onClick={connectWalletHandler}
+        className={`wallet-btn ${defaultAccount ? 'connected' : ''}`}
         style={{
           background: defaultAccount ? '#28a745' : '#f6851b', // Xanh hoặc Cam
           color: 'white',

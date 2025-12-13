@@ -116,7 +116,7 @@ export default function Send() {
         <div className="send-header">
           <h2>Gửi Crypto (REAL)</h2>
           <button className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'light' ? 'Dark' : 'Light'}
           </button>
         </div>
 
